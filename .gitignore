@@ -1,0 +1,10 @@
+# env file
+.env
+
+#dependencies
+node_modules
+package-lock.json
+
+# potential wallet keystore files
+keystore.json
+wallet.json
