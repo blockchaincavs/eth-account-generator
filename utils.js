@@ -1,6 +1,5 @@
 const { HDNodeWallet } = require("ethers");
 const { ethers, toUtf8Bytes } = require("ethers");
-const { type } = require("os");
 const { readFile, writeFile } = require('fs').promises;
 const yargs = require('yargs');
 
@@ -12,7 +11,6 @@ const yargs = require('yargs');
  */
 async function createWallet12(password, filePath="./keystore.json") {
     
-
     try {
         const hdNodeWallet = ethers.HDNodeWallet.createRandom(password);
         const publicKey = await hdNodeWallet.getAddress();
@@ -77,7 +75,7 @@ async function createWallet24(password, filePath="./keystore.json") {
  * @returns {Promise<ethers.Wallet>} decrypted wallet
  */
 async function decryptWallet(filePath, password) {
-
+        
     try {
         const keystore = await readFile(filePath, 'utf8');
         const decryptedWallet = await ethers.Wallet.fromEncryptedJson(keystore, toUtf8Bytes(password));
