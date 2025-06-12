@@ -9,14 +9,15 @@ const inquirer = require('inquirer');
  * Encrypts keystore file
  * @param {string} password used with mn to generate private key
  * @param {string} filePath Location to store keystore file
+ * @returns {Promise<ethers.HDNodeWallet>} wallet that was encrypted
  */
 async function createWallet12(password, filePath="./keystore.json") {
     
     try {
         const hdNodeWallet = ethers.HDNodeWallet.createRandom(password);
-        const publicKey = await hdNodeWallet.getAddress();
+        const ethAddress = await hdNodeWallet.getAddress();
      
-        console.log("Public Key:", publicKey)
+        console.log("Public Key:", ethAddress)
 
         const keystore = await hdNodeWallet.encrypt(toUtf8Bytes(password));
         await writeFile(filePath, keystore);
@@ -26,6 +27,7 @@ async function createWallet12(password, filePath="./keystore.json") {
         // console.log("Private Key:", hdNodeWallet.privateKey);
         // console.log("Seed Phrase:", hdNodeWallet.mnemonic);
 
+        return hdNodeWallet;
     } catch (error) {
 
         console.error("Failed to create EOA:", error);
@@ -38,6 +40,7 @@ async function createWallet12(password, filePath="./keystore.json") {
  * Encrypts keystore file
  * @param {string} password used with seed to generate private key
  * @param {string} filePath Location to store keystore file
+ * @returns {Promise<ethers.HDNodeWallet>} wallet that was encrypted
  */
 async function createWallet24(password, filePath="./keystore.json") {
 
@@ -51,9 +54,9 @@ async function createWallet24(password, filePath="./keystore.json") {
 
         // Create an HD node wallet from the mnemonic
         const hdNodeWallet = ethers.HDNodeWallet.fromMnemonic(mnemonic);
-        const publicKey = await hdNodeWallet.getAddress();
-
-        console.log("Public Key:", publicKey);
+        const ethAddress = await hdNodeWallet.getAddress();
+        
+        console.log("Public Key:", ethAddress);
 
         const keystore = await hdNodeWallet.encrypt(toUtf8Bytes(password));
         await writeFile(filePath, keystore);
@@ -62,6 +65,8 @@ async function createWallet24(password, filePath="./keystore.json") {
         /* WARNING: WILL PRINT SENSITIVE INFORMATION TO THE CONSOLE! */
         // console.log("Private Key:", hdNodeWallet.privateKey);
         // console.log("Seed Phrase:", mnemonic);
+
+        return hdNodeWallet;
 
     } catch (error) {
         console.error("Failed to create EOA:", error);
