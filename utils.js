@@ -1,7 +1,8 @@
-const { HDNodeWallet } = require("ethers");
+// const { HDNodeWallet } = require("ethers");
 const { ethers, toUtf8Bytes } = require("ethers");
 const { readFile, writeFile } = require('fs').promises;
 const yargs = require('yargs');
+const inquirer = require('inquirer');
 
 /**
  * Generate a wallet with a 12 word seed phrase.
@@ -96,17 +97,32 @@ const args = yargs
         description: 'Seed phrase size. 12 or 24 words.',
         type: 'number',
     })
-    .option('password', {
-        alias: 'ps',
-        description: 'This Password is used with the seed to generate private key and the encrypted keystore generated',
-        type: 'string',
-    })
     .option('filePath', {
         alias: 'fp',
         description: 'File destination for encrypted keystore. Default ./keystore.json',
         type: 'string',
     })
-    .example('$0 --phraseSize 12 --password HelloWorld123! --filePath ./keystore.json') // Example usage
+    .example('$0 --phraseSize 12 --filePath ./keystore.json') // Example usage
     .argv;
 
-module.exports = {createWallet12, createWallet24, decryptWallet, args};
+
+async function promptPassword() {
+
+    const answers = await inquirer.prompt([
+        {
+        type: 'password',
+        name: 'password',
+        message: 'Enter your password for encrypted keystore:',
+        mask: '*',
+        },
+    ]);
+
+    return answers.password;
+}
+module.exports = {
+    createWallet12, 
+    createWallet24, 
+    decryptWallet, 
+    args,
+    promptPassword
+};
