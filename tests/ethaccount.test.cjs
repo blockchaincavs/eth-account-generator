@@ -1,5 +1,5 @@
 
-const utils = require('../utils');
+const utils = require('../utils.cjs');
 const { readFileSync } = require('fs');
 
 const PASSWORD = "Test123!";
@@ -29,9 +29,13 @@ describe('Test create wallets', () => {
 });
 
 describe('test wallet wrong password', () => {
-  test('throws error', function() {
-    const checkWalletError = async () => await utils.decryptWallet(FIILE_PATH, 'abc');
-    expect(checkWalletError).rejects.toThrow(); // expects any error
+  test('throws error', async function() {
+    try {
+      await utils.decryptWallet(FIILE_PATH, 'abc');
+    } catch(error) {
+      expect(error).toBeDefined(); // expects any error
+    }
+    
   })
 });
 

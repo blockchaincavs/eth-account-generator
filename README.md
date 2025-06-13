@@ -11,8 +11,8 @@ Allows the user to generate an etherum EOA offline and create an encrypted keyst
 
 ## Usage
 To install dependencies: `npm install`
-To run: `node index.js --phraseSize <12/24> --password <password> --filePath <fp>`
-For Help and command line descriptions: `node index.js --help`
+To run: `node index.cjs --phraseSize <12/24> --password <password> --filePath <fp>`
+For Help and command line descriptions: `node index.cjs --help`
 
 </br>
 
