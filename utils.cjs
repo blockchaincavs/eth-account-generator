@@ -4,6 +4,7 @@ const { readFile, writeFile } = require('fs').promises;
 const yargs = require('yargs');
 const inquirer = require('inquirer');
 const { Wallet } = require("ethers");
+const { DecryptError, CreateWalletError } = require('./errors.cjs');
 
 /**
  * Generate a wallet with a 12 word seed phrase. Encrypts keystore file
@@ -13,18 +14,23 @@ const { Wallet } = require("ethers");
  */
 async function createWallet12(password, filePath="./keystore.json") {
     
-    const hdNodeWallet = ethers.HDNodeWallet.createRandom(password);
-    const ethAddress = await hdNodeWallet.getAddress();
+    try {
+        const hdNodeWallet = ethers.HDNodeWallet.createRandom(password);
+        const ethAddress = await hdNodeWallet.getAddress();
 
-    const keystore = await hdNodeWallet.encrypt(toUtf8Bytes(password));
-    await writeFile(filePath, keystore);
-    console.log("Successfully saved encrypted keystore to:", filePath);
+        const keystore = await hdNodeWallet.encrypt(toUtf8Bytes(password));
+        await writeFile(filePath, keystore);
+        console.log("Successfully saved encrypted keystore to:", filePath);
 
-    /* WARNING: WILL PRINT SENSITIVE INFORMATION TO THE CONSOLE! */
-    // console.log("Private Key:", hdNodeWallet.privateKey);
-    // console.log("Seed Phrase:", hdNodeWallet.mnemonic);
+        /* WARNING: WILL PRINT SENSITIVE INFORMATION TO THE CONSOLE! */
+        // console.log("Private Key:", hdNodeWallet.privateKey);
+        // console.log("Seed Phrase:", hdNodeWallet.mnemonic);
 
-    return hdNodeWallet;
+        return hdNodeWallet;
+    } catch (error) {
+        throw new CreateWalletError("Failed to create Wallet with 12 word seed phrase: " + error.shortMessage, error.code);
+    }
+
 }
 
 /**
@@ -37,25 +43,30 @@ async function createWallet12(password, filePath="./keystore.json") {
  */
 async function createWallet24(password, filePath="./keystore.json") {
 
-    // Generate 32 bytes of random entropy (for 24 words) 
-    const entropy = ethers.randomBytes(32);
+    try {
+        // Generate 32 bytes of random entropy (for 24 words) 
+        const entropy = ethers.randomBytes(32);
 
-    // Generate a mnemonic (seed phrase) from the entropy
-    const mnemonic = ethers.Mnemonic.fromEntropy(entropy, password);
+        // Generate a mnemonic (seed phrase) from the entropy
+        const mnemonic = ethers.Mnemonic.fromEntropy(entropy, password);
 
-    // Create an HD node wallet from the mnemonic
-    const hdNodeWallet = ethers.HDNodeWallet.fromMnemonic(mnemonic);
-    const ethAddress = await hdNodeWallet.getAddress();
+        // Create an HD node wallet from the mnemonic
+        const hdNodeWallet = ethers.HDNodeWallet.fromMnemonic(mnemonic);
+        const ethAddress = await hdNodeWallet.getAddress();
 
-    const keystore = await hdNodeWallet.encrypt(toUtf8Bytes(password));
-    await writeFile(filePath, keystore);
-    console.log("Successfully saved encrypted keystore to:", filePath);
+        const keystore = await hdNodeWallet.encrypt(toUtf8Bytes(password));
+        await writeFile(filePath, keystore);
+        console.log("Successfully saved encrypted keystore to:", filePath);
 
-    /* WARNING: WILL PRINT SENSITIVE INFORMATION TO THE CONSOLE! */
-    // console.log("Private Key:", hdNodeWallet.privateKey);
-    // console.log("Seed Phrase:", mnemonic);
+        /* WARNING: WILL PRINT SENSITIVE INFORMATION TO THE CONSOLE! */
+        // console.log("Private Key:", hdNodeWallet.privateKey);
+        // console.log("Seed Phrase:", mnemonic);
 
-    return hdNodeWallet;
+        return hdNodeWallet;
+    } catch (error) {
+        throw new CreateWalletError("Failed to create Wallet with 24 word seed phrase: " + error.shortMessage, error.code);
+    }
+
     
 }
 
@@ -63,14 +74,21 @@ async function createWallet24(password, filePath="./keystore.json") {
  * This function decripts the keystore file
  * @param {string} filePath json string
  * @param {string} password to unlock keystore
+ * @throws { DecryptError } If Wallet dectryption failes
  * @returns {Promise<ethers.Wallet>} decrypted wallet
  */
 async function decryptWallet(filePath, password) {
         
-    const keystore = await readFile(filePath, 'utf8');
-    const decryptedWallet = await ethers.Wallet.fromEncryptedJson(keystore, toUtf8Bytes(password));
+    try {
 
-    return decryptedWallet;
+        const keystore = await readFile(filePath, 'utf8');
+        return await Wallet.fromEncryptedJson(keystore, toUtf8Bytes(password));
+
+    } catch (error) {
+        const path = error.path || filePath;
+        const shortMessage = error.shortMessage || "";
+        throw new DecryptError(`Failed to decrypt wallet from keystore file: ${filePath}. ${shortMessage}`, error.code);
+    }
 
 }
 
